@@ -79,7 +79,7 @@ export const RadioBox = styled.button<RadioBoxProps>` // passamos as propriedade
     background: ${(props) => 
       props.isActive ? transparentize(0.9, colors[props.activeColor]) : 'transparent'
     };
-    // se isActive retornar true, então define a cor para aquela indicada pela propriedade. Faz uma verificação na const q salvamos as cores.
+    // se isActive retornar true, então define a cor do index daquela indicada pela propriedade. Faz uma verificação na const q salvamos as cores e procura a que corresponder com a passada pela prop.
 
     display: flex;
     align-items: center;

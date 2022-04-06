@@ -1,38 +1,64 @@
 import { FormEvent, useState } from 'react';
 import Modal from 'react-modal'
+import { useTransactions } from '../../hooks/useTransactions';
+
 import closeImg from '../../assets/close.svg'
 import incomeImg from '../../assets/income.svg'
 import outcomeImg from '../../assets/outcome.svg'
-import { api } from '../../services/api';
+
 import { Container, TransactionTypeContainer, RadioBox } from './styles';
+
 
 interface NewTransactionModalProps {
   isOpen: boolean;
   onRequestClose: () => void  
 }
 
-//pega as propriedades por desestruturação
+//pega as propriedades passadas no App por desestruturação
 export function NewTransactionModal({isOpen, onRequestClose}:NewTransactionModalProps){
+  const {createTransaction} = useTransactions()
 
   const [title, setTitle] = useState('')
-  const [value, setValue] = useState(0)
+  const [amount, setAmount] = useState(0)
   const [category, setCategory] = useState('')
 
   // podemos definir inicialmente o estado com um valor e trocar depois com uma () => {} no onClick do elemento
   const [type, setType] = useState('deposit')
 
   // função para que toda vez q o formulário for enviado através de um clique de um botão, executar a função:
-  function handleCreateNewTransaction(event: FormEvent) {
-    //por padrão o onSubmit passa tudo da função por um event. e definimos a tipagem pelo FormEvent vindo do react
+  // function handleCreateNewTransaction(event: FormEvent) {
+  //   //por padrão o onSubmit passa tudo da função por um event. e definimos a tipagem pelo FormEvent vindo do react
+
+  //   // tiramos essa função de criar transação de dentro do modal e enviamos para um contexto pois precisaremos recuperar os dados e listá-los na tabela.
+  //   event.preventDefault()
+  //   const data = ({
+  //     title,
+  //     value,
+  //     category,
+  //     type
+  //   })
+
+  //   api.post('transactions', data) // preciso criar no miragejs uma rota de post
+  // }
+
+  async function handleCreateNewTransaction(event: FormEvent) {
     event.preventDefault()
-    const data = ({
+    // chama função que cria a transação dentro do contexto
+    await createTransaction({
       title,
-      value,
+      amount,
       category,
       type
+      // falta o createdAt, por isso criamos no contexto ou no mirage
     })
+    
+    setTitle('')
+    setAmount(0)
+    setCategory('')
+    setType('deposit')
 
-    api.post('transactions', data) // preciso criar no miragejs uma rota de post
+    // precisamos fechar o modal somente se a criação der certo. Pra isso precisamos esperar que a createTransaction aconteça. E pra isso precisamos transaformar as funções em async
+    onRequestClose()
   }
 
   return (
@@ -51,6 +77,7 @@ export function NewTransactionModal({isOpen, onRequestClose}:NewTransactionModal
         </button>
 
         <Container onSubmit={handleCreateNewTransaction}>
+          {/* container como form no styled-components */}
 
           <h2>Cadastrar transação</h2>
           <input 
@@ -62,14 +89,15 @@ export function NewTransactionModal({isOpen, onRequestClose}:NewTransactionModal
           <input 
             type='number'
             placeholder='Valor'
-            value={value}
-            onChange={event => setValue(Number(event.target.value))} // por padrão o event.target transforma strings apenas
+            value={amount}
+            onChange={event => setAmount(Number(event.target.value))} 
+            // por padrão o event.target transforma strings apenas
           />
 
           <TransactionTypeContainer>
             {/* // precisamos ter alguma forma de ver se o botão foi clicado ou não. Uma das formas:
             className={ type == 'deposit' ?? 'active' : ''}
-            Mas um jeito melhor é transformar o button em um componente do styled components
+            Mas um jeito melhor é transformar o button em um componente do styled components. Que receberá as propriedades definidas, permitindo implementar funcionalidades especificas para cada caso.
             */}
             
             <RadioBox 
